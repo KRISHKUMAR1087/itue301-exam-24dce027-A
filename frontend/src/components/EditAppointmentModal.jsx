@@ -1,18 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
+  const [doctorsList, setDoctorsList] = useState([]);
   const [formData, setFormData] = useState({
     patientName: appointment.patientName || '',
     doctorName: appointment.doctorName || 'Dr. Sarah Jenkins',
     date: appointment.date || '',
     timeSlot: appointment.timeSlot || '10:00 AM',
     status: appointment.status || 'pending',
+    reason: appointment.reason || '',
   });
 
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    fetch('/api/v1/doctors')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDoctorsList(data);
+        }
+      })
+      .catch((err) => {
+        console.log('Error loading doctors list for modal:', err.message);
+      });
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'reason' && value.length > 300) return; // Max 300 chars limit
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -22,6 +39,9 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
     await onSave(appointment._id, formData);
     setSaving(false);
   };
+
+  const reasonCharCount = formData.reason.length;
+  const maxReasonLength = 300;
 
   return (
     <div className="modal-backdrop">
@@ -62,7 +82,7 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
             </select>
           </div>
 
-          {/* Edit Doctor */}
+          {/* Edit Doctor - Dynamically Populated */}
           <div className="form-group">
             <label htmlFor="doctorName">Assigned Doctor *</label>
             <select
@@ -72,16 +92,15 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
               value={formData.doctorName}
               onChange={handleChange}
             >
-              <option value="Dr. Sarah Jenkins">Dr. Sarah Jenkins (Cardiology)</option>
-              <option value="Dr. Robert Chen">Dr. Robert Chen (Neurology)</option>
-              <option value="Dr. Emily Taylor">Dr. Emily Taylor (Pediatrics)</option>
-              <option value="Dr. Michael Vance">Dr. Michael Vance (Orthopedics)</option>
-              <option value="Dr. Aisha Patel">Dr. Aisha Patel (Dermatology)</option>
-              <option value="Dr. David Miller">Dr. David Miller (Ophthalmology)</option>
-              <option value="Dr. Sophia Martinez">Dr. Sophia Martinez (Psychiatry)</option>
-              <option value="Dr. James Wilson">Dr. James Wilson (General Surgery)</option>
-              <option value="Dr. Marcus Brody">Dr. Marcus Brody (Pulmonology)</option>
-              <option value="Dr. Olivia Vance">Dr. Olivia Vance (Endocrinology)</option>
+              {doctorsList.length > 0 ? (
+                doctorsList.map((doc) => (
+                  <option key={doc._id || doc.name} value={doc.name}>
+                    {doc.name} ({doc.specialisation})
+                  </option>
+                ))
+              ) : (
+                <option value={formData.doctorName}>{formData.doctorName}</option>
+              )}
             </select>
           </div>
 
@@ -120,6 +139,34 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
               <option value="03:15 PM">03:15 PM - 03:45 PM</option>
               <option value="04:00 PM">04:00 PM - 04:30 PM</option>
             </select>
+          </div>
+
+          {/* Edit Reason with Live Character Counter */}
+          <div className="form-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label htmlFor="reasonModal" style={{ marginBottom: '0.4rem' }}>
+                Reason for Visit
+              </label>
+              <span
+                style={{
+                  fontSize: '0.825rem',
+                  fontWeight: '700',
+                  color: reasonCharCount > 280 ? '#ef4444' : '#64748b',
+                }}
+              >
+                {reasonCharCount} / {maxReasonLength} characters
+              </span>
+            </div>
+            <textarea
+              id="reasonModal"
+              name="reason"
+              className="form-control"
+              rows="3"
+              maxLength={maxReasonLength}
+              placeholder="Brief description of symptoms or checkup reason (Max 300 characters)"
+              value={formData.reason}
+              onChange={handleChange}
+            />
           </div>
 
           {/* Buttons */}

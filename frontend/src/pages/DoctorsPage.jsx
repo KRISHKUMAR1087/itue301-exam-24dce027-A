@@ -6,7 +6,12 @@ const DoctorsPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Filter & Sort States
   const [searchQuery, setSearchQuery] = useState('');
+  const [specialityFilter, setSpecialityFilter] = useState('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name-az');
   const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
@@ -65,12 +70,32 @@ const DoctorsPage = () => {
     }
   };
 
-  // Filter doctors by search query
-  const filteredDoctors = data.filter(
-    (doc) =>
-      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.specialisation.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get unique list of specialties for filter dropdown
+  const uniqueSpecialties = Array.from(new Set(data.map((d) => d.specialisation))).sort();
+
+  // Filter & Sort Logic for Doctors
+  const filteredDoctors = data
+    .filter((doc) => {
+      const matchesSearch =
+        doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.specialisation.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSpecialty =
+        specialityFilter === 'all' || doc.specialisation === specialityFilter;
+      const matchesAvailability =
+        availabilityFilter === 'all' ||
+        (availabilityFilter === 'available' && doc.available) ||
+        (availabilityFilter === 'unavailable' && !doc.available);
+
+      return matchesSearch && matchesSpecialty && matchesAvailability;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name-az') {
+        return a.name.localeCompare(b.name);
+      } else if (sortBy === 'specialty') {
+        return a.specialisation.localeCompare(b.specialisation);
+      }
+      return 0;
+    });
 
   return (
     <div className="container">
@@ -81,19 +106,67 @@ const DoctorsPage = () => {
         </p>
       </div>
 
-      {/* Doctor Search & Filter Control */}
+      {/* Doctor Search, Specialty Filter, Availability Filter & Sort Controls */}
       {!loading && !error && (
         <div className="filter-control-bar" style={{ marginBottom: '2rem' }}>
+          {/* Search Input */}
           <div className="filter-item search-box">
-            <label htmlFor="doctorSearch">🔍 Search Specialists</label>
+            <label htmlFor="doctorSearch">🔍 Search Specialist</label>
             <input
               type="text"
               id="doctorSearch"
               className="form-control"
-              placeholder="Search by doctor name or specialty (e.g., Cardiology)..."
+              placeholder="Search by doctor name or specialty..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+
+          {/* Specialty Filter Dropdown */}
+          <div className="filter-item">
+            <label htmlFor="specialtyFilter">🔬 Specialty</label>
+            <select
+              id="specialtyFilter"
+              className="form-control"
+              value={specialityFilter}
+              onChange={(e) => setSpecialityFilter(e.target.value)}
+            >
+              <option value="all">All Specialties ({uniqueSpecialties.length})</option>
+              {uniqueSpecialties.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Availability Filter Dropdown */}
+          <div className="filter-item">
+            <label htmlFor="availabilityFilter">🟢 Status</label>
+            <select
+              id="availabilityFilter"
+              className="form-control"
+              value={availabilityFilter}
+              onChange={(e) => setAvailabilityFilter(e.target.value)}
+            >
+              <option value="all">All Statuses ({data.length})</option>
+              <option value="available">Available Today Only</option>
+              <option value="unavailable">Unavailable Only</option>
+            </select>
+          </div>
+
+          {/* Sort By Dropdown */}
+          <div className="filter-item">
+            <label htmlFor="sortByDoc">🔃 Sort By</label>
+            <select
+              id="sortByDoc"
+              className="form-control"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name-az">Doctor Name (A - Z)</option>
+              <option value="specialty">Specialization</option>
+            </select>
           </div>
         </div>
       )}
@@ -111,8 +184,16 @@ const DoctorsPage = () => {
         </div>
       )}
 
+      {/* Empty Results Handling */}
+      {!loading && !error && filteredDoctors.length === 0 && (
+        <div className="empty-results-box">
+          <h3>🔍 No medical specialists found</h3>
+          <p>Try adjusting your specialty filter or search query.</p>
+        </div>
+      )}
+
       {/* 3. Display doctor data after successful request */}
-      {!loading && !error && (
+      {!loading && !error && filteredDoctors.length > 0 && (
         <div className="cards-grid">
           {filteredDoctors.map((doctor) => (
             <div className="doctor-card" key={doctor._id || doctor.name}>

@@ -1,8 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const BookingPage = () => {
   const navigate = useNavigate();
+
+  // Dynamic Doctors List fetched from API
+  const [doctorsList, setDoctorsList] = useState([
+    { _id: '1', name: 'Dr. Sarah Jenkins', specialisation: 'Cardiology', available: true },
+    { _id: '2', name: 'Dr. Robert Chen', specialisation: 'Neurology', available: true },
+    { _id: '3', name: 'Dr. Emily Taylor', specialisation: 'Pediatrics', available: false },
+    { _id: '4', name: 'Dr. Michael Vance', specialisation: 'Orthopedics', available: true },
+    { _id: '5', name: 'Dr. Aisha Patel', specialisation: 'Dermatology', available: true },
+    { _id: '6', name: 'Dr. David Miller', specialisation: 'Ophthalmology', available: true },
+    { _id: '7', name: 'Dr. Sophia Martinez', specialisation: 'Psychiatry', available: false },
+    { _id: '8', name: 'Dr. James Wilson', specialisation: 'General Surgery', available: true },
+    { _id: '9', name: 'Dr. Marcus Brody', specialisation: 'Pulmonology', available: true },
+    { _id: '10', name: 'Dr. Olivia Vance', specialisation: 'Endocrinology', available: true },
+  ]);
 
   // Task 2: State 1 - Form Data
   const [formData, setFormData] = useState({
@@ -19,8 +33,28 @@ const BookingPage = () => {
   // Status message
   const [statusMessage, setStatusMessage] = useState('');
 
+  // Fetch all doctors from API dynamically on mount
+  useEffect(() => {
+    fetch('/api/v1/doctors')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDoctorsList(data);
+          if (data[0]?.name) {
+            setFormData((prev) => ({ ...prev, doctorName: data[0].name }));
+            setSelectedDoctor(data[0].name);
+          }
+        }
+      })
+      .catch((err) => {
+        console.log('Using default doctors list for BookingPage:', err.message);
+      });
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'reason' && value.length > 300) return; // Enforce max 300 chars limit
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -64,6 +98,9 @@ const BookingPage = () => {
       setStatusMessage(`⚠️ Server error: ${err.message}`);
     }
   };
+
+  const reasonCharCount = formData.reason.length;
+  const maxReasonLength = 300;
 
   return (
     <div className="container">
@@ -109,9 +146,9 @@ const BookingPage = () => {
               />
             </div>
 
-            {/* Doctor Name */}
+            {/* Doctor Name - Dynamically Rendered */}
             <div className="form-group">
-              <label htmlFor="doctorName">Select Medical Specialist *</label>
+              <label htmlFor="doctorName">Select Medical Specialist * ({doctorsList.length} Available)</label>
               <select
                 id="doctorName"
                 name="doctorName"
@@ -119,10 +156,11 @@ const BookingPage = () => {
                 value={formData.doctorName}
                 onChange={handleChange}
               >
-                <option value="Dr. Sarah Jenkins">Dr. Sarah Jenkins (Cardiology)</option>
-                <option value="Dr. Robert Chen">Dr. Robert Chen (Neurology)</option>
-                <option value="Dr. Emily Taylor">Dr. Emily Taylor (Pediatrics)</option>
-                <option value="Dr. Michael Vance">Dr. Michael Vance (Orthopedics)</option>
+                {doctorsList.map((doc) => (
+                  <option key={doc._id || doc.name} value={doc.name}>
+                    {doc.name} ({doc.specialisation}) {doc.available === false ? '- Not Available' : ''}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -157,15 +195,29 @@ const BookingPage = () => {
               </select>
             </div>
 
-            {/* Reason */}
+            {/* Reason for Visit with Live Character Count Feature */}
             <div className="form-group">
-              <label htmlFor="reason">Reason for Visit</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label htmlFor="reason" style={{ marginBottom: '0.4rem' }}>
+                  Reason for Visit
+                </label>
+                <span
+                  style={{
+                    fontSize: '0.825rem',
+                    fontWeight: '700',
+                    color: reasonCharCount > 280 ? '#ef4444' : '#64748b',
+                  }}
+                >
+                  {reasonCharCount} / {maxReasonLength} characters
+                </span>
+              </div>
               <textarea
                 id="reason"
                 name="reason"
                 className="form-control"
                 rows="3"
-                placeholder="Brief description of symptoms or routine checkup reason"
+                maxLength={maxReasonLength}
+                placeholder="Brief description of symptoms or routine checkup reason (Max 300 characters)"
                 value={formData.reason}
                 onChange={handleChange}
               />
@@ -206,7 +258,7 @@ const BookingPage = () => {
 
           {formData.reason && (
             <div className="preview-field">
-              <div className="preview-label">Visit Reason</div>
+              <div className="preview-label">Visit Reason ({reasonCharCount} chars)</div>
               <div className="preview-value" style={{ fontSize: '0.95rem', fontWeight: '500' }}>
                 "{formData.reason}"
               </div>

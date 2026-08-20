@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import Toast from './components/Toast';
 import HomePage from './pages/HomePage';
 import DoctorsPage from './pages/DoctorsPage';
 import BookingPage from './pages/BookingPage';
@@ -15,8 +16,20 @@ const AppContent = ({ theme, toggleTheme }) => {
   const validRoutes = ['/', '/doctors', '/booking'];
   const isNotFoundPage = !validRoutes.includes(location.pathname);
 
+  // Initial Website Load Welcome Toast Notification
+  const [welcomeToast, setWelcomeToast] = useState(true);
+
   return (
     <div className="app-container">
+      {/* Website Initial Load Slide-Down Toast */}
+      {welcomeToast && (
+        <Toast
+          message="🏥 MedCare Plus Portal Loaded!"
+          onClose={() => setWelcomeToast(false)}
+        />
+      )}
+
+
       {/* Hide Navbar on 404 Page */}
       {!isNotFoundPage && <Navbar theme={theme} toggleTheme={toggleTheme} />}
 

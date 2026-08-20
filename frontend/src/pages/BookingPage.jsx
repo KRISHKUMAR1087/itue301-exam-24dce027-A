@@ -20,6 +20,7 @@ const BookingPage = () => {
   ]);
 
   // Task 2 & Task 5: State 1 - Form Data with Blood Group
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Not Known'];
   const [formData, setFormData] = useState({
     patientName: '',
     bloodGroup: 'O+',
@@ -174,7 +175,9 @@ const BookingPage = () => {
                 <option value="AB-">🩸 AB- (AB Negative)</option>
                 <option value="O+">🩸 O+ (O Positive)</option>
                 <option value="O-">🩸 O- (O Negative)</option>
+                <option value="Not Known">🩸 Not Known / Don't Know</option>
               </select>
+
             </div>
 
             {/* Doctor Name */}

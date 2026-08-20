@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Patient Schema Definition
 const patientSchema = new mongoose.Schema(
   {
     name: {
@@ -21,16 +22,19 @@ const patientSchema = new mongoose.Schema(
     bloodGroup: {
       type: String,
       enum: {
-        values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-        message: '{VALUE} is not a valid blood group. Allowed: A+, A-, B+, B-, AB+, AB-, O+, O-',
+        values: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Not Known'],
+        message: '{VALUE} is not a supported blood group',
       },
+      default: 'O+',
     },
     age: {
       type: Number,
       min: [0, 'Age cannot be negative'],
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model('Patient', patientSchema);

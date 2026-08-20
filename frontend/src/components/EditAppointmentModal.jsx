@@ -4,6 +4,7 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
   const [doctorsList, setDoctorsList] = useState([]);
   const [formData, setFormData] = useState({
     patientName: appointment.patientName || '',
+    bloodGroup: appointment.bloodGroup || 'O+',
     doctorName: appointment.doctorName || 'Dr. Sarah Jenkins',
     date: appointment.date || '',
     timeSlot: appointment.timeSlot || '10:00 AM',
@@ -57,7 +58,7 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
         {/* Scrollable Form Body */}
         <div className="modal-scroll-body">
           <form onSubmit={handleSubmit}>
-            {/* Patient Name (Read-only reference) */}
+            {/* Patient Name */}
             <div className="form-group">
               <label>Patient Name</label>
               <input
@@ -67,6 +68,28 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
                 disabled
                 style={{ backgroundColor: '#e2e8f0', color: '#475569' }}
               />
+            </div>
+
+            {/* Patient Blood Group Selector */}
+            <div className="form-group">
+              <label htmlFor="bloodGroupModal">Patient Blood Group *</label>
+              <select
+                id="bloodGroupModal"
+                name="bloodGroup"
+                className="form-control"
+                value={formData.bloodGroup}
+                onChange={handleChange}
+              >
+                <option value="A+">🩸 A+ (A Positive)</option>
+                <option value="A-">🩸 A- (A Negative)</option>
+                <option value="B+">🩸 B+ (B Positive)</option>
+                <option value="B-">🩸 B- (B Negative)</option>
+                <option value="AB+">🩸 AB+ (AB Positive)</option>
+                <option value="AB-">🩸 AB- (AB Negative)</option>
+                <option value="O+">🩸 O+ (O Positive)</option>
+                <option value="O-">🩸 O- (O Negative)</option>
+                <option value="Not Known">🩸 Not Known / Don't Know</option>
+              </select>
             </div>
 
             {/* Edit Status */}

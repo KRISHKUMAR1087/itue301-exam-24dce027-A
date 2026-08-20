@@ -53,7 +53,7 @@ const BookingPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'reason' && value.length > 300) return; // Enforce max 300 chars limit
+    if (name === 'reason' && value.length > 300) return;
 
     setFormData((prev) => ({
       ...prev,
@@ -101,6 +101,7 @@ const BookingPage = () => {
 
   const reasonCharCount = formData.reason.length;
   const maxReasonLength = 300;
+  const isFormComplete = Boolean(formData.patientName && formData.date);
 
   return (
     <div className="container">
@@ -146,7 +147,7 @@ const BookingPage = () => {
               />
             </div>
 
-            {/* Doctor Name - Dynamically Rendered */}
+            {/* Doctor Name */}
             <div className="form-group">
               <label htmlFor="doctorName">Select Medical Specialist * ({doctorsList.length} Available)</label>
               <select
@@ -195,7 +196,7 @@ const BookingPage = () => {
               </select>
             </div>
 
-            {/* Reason for Visit with Live Character Count Feature */}
+            {/* Reason for Visit with Character Count */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label htmlFor="reason" style={{ marginBottom: '0.4rem' }}>
@@ -229,41 +230,58 @@ const BookingPage = () => {
           </form>
         </div>
 
-        {/* Task 2: Real-time Live State Preview Sidebar */}
+        {/* Task 2: Separated & Structured Live State Monitor Sidebar */}
         <div className="state-preview-card">
           <div className="state-preview-header">
-            ⚡ Live State Monitor
+            <span className="live-pulse-dot"></span> LIVE STATE MONITOR
           </div>
 
-          <div className="preview-field">
-            <div className="preview-label">Patient Name State</div>
-            <div className={formData.patientName ? 'preview-value' : 'preview-value empty'}>
-              {formData.patientName || 'Waiting for input...'}
+          {/* Section 1: Patient Details */}
+          <div className="monitor-section">
+            <div className="monitor-section-title">👤 Patient Details</div>
+            <div className={formData.patientName ? 'monitor-box active' : 'monitor-box empty'}>
+              {formData.patientName || 'Waiting for patient name...'}
             </div>
           </div>
 
-          <div className="preview-field">
-            <div className="preview-label">Selected Doctor State</div>
-            <div className="preview-value">
+          {/* Section 2: Assigned Specialist */}
+          <div className="monitor-section">
+            <div className="monitor-section-title">🩺 Assigned Specialist</div>
+            <div className="monitor-box highlight">
               {selectedDoctor}
             </div>
           </div>
 
-          <div className="preview-field">
-            <div className="preview-label">Appointment Schedule</div>
-            <div className={formData.date ? 'preview-value' : 'preview-value empty'}>
-              {formData.date ? `${formData.date} at ${formData.timeSlot}` : 'Select date...'}
+          {/* Section 3: Appointment Date & Time */}
+          <div className="monitor-section">
+            <div className="monitor-section-title">📅 Schedule & Time Slot</div>
+            <div className="monitor-grid-row">
+              <div className={formData.date ? 'monitor-chip' : 'monitor-chip empty'}>
+                🗓️ {formData.date || 'No Date'}
+              </div>
+              <div className="monitor-chip active">
+                ⏰ {formData.timeSlot}
+              </div>
             </div>
           </div>
 
-          {formData.reason && (
-            <div className="preview-field">
-              <div className="preview-label">Visit Reason ({reasonCharCount} chars)</div>
-              <div className="preview-value" style={{ fontSize: '0.95rem', fontWeight: '500' }}>
-                "{formData.reason}"
-              </div>
+          {/* Section 4: Visit Reason */}
+          <div className="monitor-section">
+            <div className="monitor-section-title">
+              <span>💬 Visit Reason</span>
+              <span className="reason-counter-chip">{reasonCharCount}/300</span>
             </div>
-          )}
+            <div className={formData.reason ? 'monitor-box' : 'monitor-box empty'}>
+              {formData.reason ? `"${formData.reason}"` : 'No reason specified'}
+            </div>
+          </div>
+
+          {/* Section 5: Form Status Badge */}
+          <div className="monitor-footer-badge">
+            <span className={`form-readiness-tag ${isFormComplete ? 'ready' : 'incomplete'}`}>
+              {isFormComplete ? '🟢 Ready for Submission' : '🟡 Incomplete Form'}
+            </span>
+          </div>
         </div>
       </div>
     </div>

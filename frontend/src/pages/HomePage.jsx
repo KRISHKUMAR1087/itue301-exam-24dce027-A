@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AppointmentCard from '../components/AppointmentCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EditAppointmentModal from '../components/EditAppointmentModal';
+import Toast from '../components/Toast';
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
@@ -9,11 +10,14 @@ const HomePage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date-asc');
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
+  // 10 Distinct Appointments with Diverse Blood Groups
   const [appointments, setAppointments] = useState([
     {
       _id: '1',
       patientName: 'John Doe',
+      bloodGroup: 'A+',
       doctorName: 'Dr. Sarah Jenkins',
       date: '2026-08-25',
       timeSlot: '10:00 AM',
@@ -22,6 +26,7 @@ const HomePage = () => {
     {
       _id: '2',
       patientName: 'Alice Smith',
+      bloodGroup: 'B+',
       doctorName: 'Dr. Robert Chen',
       date: '2026-08-26',
       timeSlot: '02:30 PM',
@@ -30,6 +35,7 @@ const HomePage = () => {
     {
       _id: '3',
       patientName: 'Michael Brown',
+      bloodGroup: 'O-',
       doctorName: 'Dr. Emily Taylor',
       date: '2026-08-27',
       timeSlot: '11:15 AM',
@@ -37,56 +43,63 @@ const HomePage = () => {
     },
     {
       _id: '4',
-      patientName: 'Eleanor Vance',
-      doctorName: 'Dr. Michael Vance',
+      patientName: 'Krishkumar Darji',
+      bloodGroup: 'O+',
+      doctorName: 'Dr. Sarah Jenkins',
       date: '2026-08-28',
       timeSlot: '09:00 AM',
       status: 'confirmed',
     },
     {
       _id: '5',
-      patientName: 'David Miller',
-      doctorName: 'Dr. Aisha Patel',
+      patientName: 'Eleanor Vance',
+      bloodGroup: 'AB+',
+      doctorName: 'Dr. Michael Vance',
       date: '2026-08-29',
       timeSlot: '03:15 PM',
       status: 'pending',
     },
     {
       _id: '6',
-      patientName: 'Samantha Ray',
-      doctorName: 'Dr. David Miller',
+      patientName: 'David Miller',
+      bloodGroup: 'A-',
+      doctorName: 'Dr. Aisha Patel',
       date: '2026-08-30',
       timeSlot: '01:00 PM',
       status: 'confirmed',
     },
     {
       _id: '7',
-      patientName: 'Carlos Gomez',
-      doctorName: 'Dr. Sophia Martinez',
+      patientName: 'Samantha Ray',
+      bloodGroup: 'B-',
+      doctorName: 'Dr. David Miller',
       date: '2026-08-31',
       timeSlot: '10:30 AM',
       status: 'cancelled',
     },
     {
       _id: '8',
-      patientName: 'Hannah Abbott',
-      doctorName: 'Dr. James Wilson',
+      patientName: 'Carlos Gomez',
+      bloodGroup: 'AB-',
+      doctorName: 'Dr. Sophia Martinez',
       date: '2026-09-01',
       timeSlot: '04:00 PM',
       status: 'pending',
     },
     {
       _id: '9',
-      patientName: 'Liam Gallagher',
-      doctorName: 'Dr. Marcus Brody',
+      patientName: 'Hannah Abbott',
+      bloodGroup: 'A+',
+      doctorName: 'Dr. James Wilson',
       date: '2026-09-02',
       timeSlot: '09:30 AM',
       status: 'confirmed',
     },
     {
       _id: '10',
-      patientName: 'Chloe Bennett',
-      doctorName: 'Dr. Olivia Vance',
+      patientName: 'Liam Gallagher',
+      bloodGroup: 'O+',
+      doctorName: 'Dr. Marcus Brody',
       date: '2026-09-03',
       timeSlot: '02:15 PM',
       status: 'pending',
@@ -102,6 +115,7 @@ const HomePage = () => {
           const formatted = data.map((item, index) => ({
             _id: item._id || String(index),
             patientName: item.patientId?.name || item.patientName || 'Anonymous Patient',
+            bloodGroup: item.patientId?.bloodGroup || item.bloodGroup || 'O+',
             doctorName: item.doctorId?.name || item.doctorName || 'Dr. Specialist',
             date: item.date || '2026-08-30',
             timeSlot: item.timeSlot || '10:00 AM',
@@ -118,12 +132,11 @@ const HomePage = () => {
       });
   };
 
-
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  // Update appointment handler (PUT request to backend)
+  // Update appointment handler
   const handleSaveEdit = async (id, updatedData) => {
     try {
       const res = await fetch(`/api/v1/appointments/${id}`, {
@@ -136,16 +149,18 @@ const HomePage = () => {
         setAppointments((prev) =>
           prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
         );
+        setToastMessage('Appointment Details Successfully Updated!');
       } else {
-        // Fallback local update
         setAppointments((prev) =>
           prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
         );
+        setToastMessage('Appointment Details Successfully Updated!');
       }
     } catch (err) {
       setAppointments((prev) =>
         prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
       );
+      setToastMessage('Appointment Details Successfully Updated!');
     } finally {
       setEditingAppointment(null);
     }
@@ -156,7 +171,8 @@ const HomePage = () => {
     .filter((appt) => {
       const matchesSearch =
         appt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase());
+        appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (appt.bloodGroup && appt.bloodGroup.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesStatus =
         statusFilter === 'all' || appt.status.toLowerCase() === statusFilter.toLowerCase();
       return matchesSearch && matchesStatus;
@@ -174,6 +190,11 @@ const HomePage = () => {
 
   return (
     <div className="container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage('')} />
+      )}
+
       <div className="page-header-box">
         <h1 className="page-title">📋 Scheduled Appointments</h1>
         <p className="page-subtitle">
@@ -183,20 +204,18 @@ const HomePage = () => {
 
       {/* Search, Filter & Sort Control Bar */}
       <div className="filter-control-bar">
-        {/* Search Input */}
         <div className="filter-item search-box">
           <label htmlFor="search">🔍 Search</label>
           <input
             type="text"
             id="search"
             className="form-control"
-            placeholder="Search patient or doctor name..."
+            placeholder="Search patient, doctor name or blood group (e.g., A+)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        {/* Status Filter */}
         <div className="filter-item">
           <label htmlFor="statusFilter">🏷️ Status</label>
           <select
@@ -212,7 +231,6 @@ const HomePage = () => {
           </select>
         </div>
 
-        {/* Sort Dropdown */}
         <div className="filter-item">
           <label htmlFor="sortBy">🔃 Sort By</label>
           <select
@@ -241,6 +259,7 @@ const HomePage = () => {
             <AppointmentCard
               key={appt._id}
               patientName={appt.patientName}
+              bloodGroup={appt.bloodGroup}
               doctorName={appt.doctorName}
               date={appt.date}
               timeSlot={appt.timeSlot}

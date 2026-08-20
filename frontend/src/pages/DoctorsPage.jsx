@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Toast from '../components/Toast';
 
 const DoctorsPage = () => {
   // Task 4: Maintain three states - data, loading, and error
@@ -7,12 +8,13 @@ const DoctorsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Filter & Sort States
+  // Filter & Sort & Toast States
   const [searchQuery, setSearchQuery] = useState('');
   const [specialityFilter, setSpecialityFilter] = useState('all');
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name-az');
   const [updatingId, setUpdatingId] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     // Task 4: Asynchronous pattern using fetch inside useEffect
@@ -55,16 +57,18 @@ const DoctorsPage = () => {
         setData((prevData) =>
           prevData.map((doc) => (doc._id === docId ? { ...doc, available: newStatus } : doc))
         );
+        setToastMessage(`Doctor Availability Updated to ${newStatus ? 'Available' : 'Unavailable'}!`);
       } else {
-        // Local state update fallback
         setData((prevData) =>
           prevData.map((doc) => (doc._id === docId ? { ...doc, available: newStatus } : doc))
         );
+        setToastMessage(`Doctor Availability Updated to ${newStatus ? 'Available' : 'Unavailable'}!`);
       }
     } catch (err) {
       setData((prevData) =>
         prevData.map((doc) => (doc._id === docId ? { ...doc, available: newStatus } : doc))
       );
+      setToastMessage(`Doctor Availability Updated to ${newStatus ? 'Available' : 'Unavailable'}!`);
     } finally {
       setUpdatingId(null);
     }
@@ -99,6 +103,11 @@ const DoctorsPage = () => {
 
   return (
     <div className="container">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage('')} />
+      )}
+
       <div className="page-header-box">
         <h1 className="page-title">👨‍⚕️ Medical Specialists</h1>
         <p className="page-subtitle">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 
 const BookingPage = () => {
   const navigate = useNavigate();
@@ -18,9 +19,10 @@ const BookingPage = () => {
     { _id: '10', name: 'Dr. Olivia Vance', specialisation: 'Endocrinology', available: true },
   ]);
 
-  // Task 2: State 1 - Form Data
+  // Task 2 & Task 5: State 1 - Form Data with Blood Group
   const [formData, setFormData] = useState({
     patientName: '',
+    bloodGroup: 'O+',
     doctorName: 'Dr. Sarah Jenkins',
     date: '',
     timeSlot: '09:00 AM',
@@ -30,7 +32,8 @@ const BookingPage = () => {
   // Task 2: State 2 - Selected Doctor / Preview State
   const [selectedDoctor, setSelectedDoctor] = useState('Dr. Sarah Jenkins');
   
-  // Status message
+  // Toast & Status message
+  const [toastMessage, setToastMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
   // Fetch all doctors from API dynamically on mount
@@ -78,6 +81,7 @@ const BookingPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           patientName: formData.patientName,
+          bloodGroup: formData.bloodGroup,
           doctorName: formData.doctorName,
           date: formData.date,
           timeSlot: formData.timeSlot,
@@ -87,7 +91,7 @@ const BookingPage = () => {
       });
 
       if (response.ok) {
-        setStatusMessage('✅ Appointment successfully booked!');
+        setToastMessage('Appointment Successfully Booked!');
         setTimeout(() => {
           navigate('/');
         }, 1500);
@@ -105,6 +109,11 @@ const BookingPage = () => {
 
   return (
     <div className="container">
+      {/* Animated Toast Notification */}
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage('')} />
+      )}
+
       <div className="page-header-box">
         <h1 className="page-title">📅 Book an Appointment</h1>
         <p className="page-subtitle">
@@ -145,6 +154,27 @@ const BookingPage = () => {
                 onChange={handleChange}
                 required
               />
+            </div>
+
+            {/* Task 5: Patient Blood Group Enum Dropdown */}
+            <div className="form-group">
+              <label htmlFor="bloodGroup">Patient Blood Group * (Mongoose Enum)</label>
+              <select
+                id="bloodGroup"
+                name="bloodGroup"
+                className="form-control"
+                value={formData.bloodGroup}
+                onChange={handleChange}
+              >
+                <option value="A+">🩸 A+ (A Positive)</option>
+                <option value="A-">🩸 A- (A Negative)</option>
+                <option value="B+">🩸 B+ (B Positive)</option>
+                <option value="B-">🩸 B- (B Negative)</option>
+                <option value="AB+">🩸 AB+ (AB Positive)</option>
+                <option value="AB-">🩸 AB- (AB Negative)</option>
+                <option value="O+">🩸 O+ (O Positive)</option>
+                <option value="O-">🩸 O- (O Negative)</option>
+              </select>
             </div>
 
             {/* Doctor Name */}
@@ -196,7 +226,7 @@ const BookingPage = () => {
               </select>
             </div>
 
-            {/* Reason for Visit with Character Count */}
+            {/* Reason for Visit */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label htmlFor="reason" style={{ marginBottom: '0.4rem' }}>
@@ -230,21 +260,26 @@ const BookingPage = () => {
           </form>
         </div>
 
-        {/* Task 2: Separated & Structured Live State Monitor Sidebar */}
+        {/* Separated Live State Monitor Sidebar with Blood Group */}
         <div className="state-preview-card">
           <div className="state-preview-header">
             <span className="live-pulse-dot"></span> LIVE STATE MONITOR
           </div>
 
-          {/* Section 1: Patient Details */}
+          {/* Patient Details & Blood Group */}
           <div className="monitor-section">
-            <div className="monitor-section-title">👤 Patient Details</div>
-            <div className={formData.patientName ? 'monitor-box active' : 'monitor-box empty'}>
-              {formData.patientName || 'Waiting for patient name...'}
+            <div className="monitor-section-title">👤 Patient & Blood Group</div>
+            <div className="monitor-grid-row" style={{ marginBottom: '0.4rem' }}>
+              <div className={formData.patientName ? 'monitor-box active' : 'monitor-box empty'} style={{ flex: 2 }}>
+                {formData.patientName || 'Waiting for patient name...'}
+              </div>
+              <div className="monitor-chip active" style={{ flex: 1, backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                🩸 {formData.bloodGroup}
+              </div>
             </div>
           </div>
 
-          {/* Section 2: Assigned Specialist */}
+          {/* Assigned Specialist */}
           <div className="monitor-section">
             <div className="monitor-section-title">🩺 Assigned Specialist</div>
             <div className="monitor-box highlight">
@@ -252,7 +287,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Section 3: Appointment Date & Time */}
+          {/* Schedule & Time Slot */}
           <div className="monitor-section">
             <div className="monitor-section-title">📅 Schedule & Time Slot</div>
             <div className="monitor-grid-row">
@@ -265,7 +300,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Section 4: Visit Reason */}
+          {/* Visit Reason */}
           <div className="monitor-section">
             <div className="monitor-section-title">
               <span>💬 Visit Reason</span>
@@ -276,7 +311,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Section 5: Form Status Badge */}
+          {/* Form Status Badge */}
           <div className="monitor-footer-badge">
             <span className={`form-readiness-tag ${isFormComplete ? 'ready' : 'incomplete'}`}>
               {isFormComplete ? '🟢 Ready for Submission' : '🟡 Incomplete Form'}

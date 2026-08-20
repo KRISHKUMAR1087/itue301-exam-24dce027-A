@@ -108,7 +108,7 @@ const HomePage = () => {
 
   const fetchAppointments = () => {
     setLoading(true);
-    // 1-Second smooth loading animation timer
+    // Exact 0.5-second smooth loading animation timer
     setTimeout(() => {
       fetch('/api/v1/appointments')
         .then((res) => res.json())
@@ -132,7 +132,7 @@ const HomePage = () => {
         .finally(() => {
           setLoading(false);
         });
-    }, 1000);
+    }, 500);
   };
 
   useEffect(() => {

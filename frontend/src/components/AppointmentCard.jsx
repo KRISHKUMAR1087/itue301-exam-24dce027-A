@@ -43,7 +43,7 @@ const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloo
         </div>
       </div>
 
-      {/* Action Buttons: Edit and Delete (Prominent when Cancelled) */}
+      {/* Action Row: Edit button for all cards, Delete button ONLY when Cancelled */}
       <div className="card-action-row" style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
         {onEdit && (
           <button
@@ -52,22 +52,19 @@ const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloo
             className="btn-edit-appointment"
             style={{ flex: 1 }}
           >
-            ✏️ Edit
+            ✏️ Edit Details & Status
           </button>
         )}
 
-        {onDelete && (
+        {isCancelled && onDelete && (
           <button
             type="button"
             onClick={onDelete}
             className="btn-delete-appointment"
-            title="Delete Appointment Record"
-            style={{
-              flex: isCancelled ? 1 : 'none',
-              padding: '0.7rem 0.85rem',
-            }}
+            title="Delete Cancelled Appointment Record"
+            style={{ flex: 1, padding: '0.65rem 0.9rem' }}
           >
-            🗑️ {isCancelled ? 'Delete' : ''}
+            🗑️ Delete Record
           </button>
         )}
       </div>

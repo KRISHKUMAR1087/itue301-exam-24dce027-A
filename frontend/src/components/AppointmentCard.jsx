@@ -1,7 +1,8 @@
 import React from 'react';
 
-const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloodGroup = 'O+', onEdit }) => {
+const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloodGroup = 'O+', onEdit, onDelete }) => {
   const statusClass = (status || 'pending').toLowerCase();
+  const isCancelled = statusClass === 'cancelled';
 
   return (
     <div className="appointment-card">
@@ -18,7 +19,7 @@ const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloo
         </div>
 
         {/* Assigned Doctor & Patient Blood Group Tags Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
           <div className="doctor-name" style={{ margin: 0 }}>
             <span>🩺</span> {doctorName}
           </div>
@@ -42,16 +43,34 @@ const AppointmentCard = ({ patientName, doctorName, date, timeSlot, status, bloo
         </div>
       </div>
 
-      {/* Edit Action Button pinned at bottom */}
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="btn-edit-appointment"
-        >
-          ✏️ Edit Details & Status
-        </button>
-      )}
+      {/* Action Buttons: Edit and Delete (Prominent when Cancelled) */}
+      <div className="card-action-row" style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="btn-edit-appointment"
+            style={{ flex: 1 }}
+          >
+            ✏️ Edit
+          </button>
+        )}
+
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="btn-delete-appointment"
+            title="Delete Appointment Record"
+            style={{
+              flex: isCancelled ? 1 : 'none',
+              padding: '0.7rem 0.85rem',
+            }}
+          >
+            🗑️ {isCancelled ? 'Delete' : ''}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

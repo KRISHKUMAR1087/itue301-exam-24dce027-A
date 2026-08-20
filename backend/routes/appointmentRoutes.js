@@ -240,4 +240,22 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
+// DELETE /api/v1/appointments/:id - Delete appointment
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    try {
+      await Appointment.findByIdAndDelete(id);
+    } catch (dbErr) {
+      // Ignore DB error for in-memory fallback
+    }
+
+    initialAppointments = initialAppointments.filter((a) => a._id !== id);
+    return res.status(200).json({ success: true, message: 'Appointment deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

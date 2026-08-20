@@ -17,11 +17,14 @@ const DoctorsPage = () => {
   const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
-    // Task 4: Asynchronous pattern using fetch inside useEffect
+    // Task 4: Asynchronous pattern using fetch inside useEffect with exact 1-sec loading timer
     const fetchDoctors = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Exact 1-second smooth loading animation delay
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const response = await fetch('/api/v1/doctors');
         if (!response.ok) {
@@ -39,6 +42,8 @@ const DoctorsPage = () => {
 
     fetchDoctors();
   }, []);
+
+
 
   // Toggle Doctor Availability Status Handler
   const handleToggleAvailability = async (doctor) => {

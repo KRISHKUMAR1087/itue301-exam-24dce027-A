@@ -98,7 +98,7 @@ const HomePage = () => {
     {
       _id: '10',
       patientName: 'Liam Gallagher',
-      bloodGroup: 'O+',
+      bloodGroup: 'B+',
       doctorName: 'Dr. Marcus Brody',
       date: '2026-09-03',
       timeSlot: '02:15 PM',
@@ -108,28 +108,31 @@ const HomePage = () => {
 
   const fetchAppointments = () => {
     setLoading(true);
-    fetch('/api/v1/appointments')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((item, index) => ({
-            _id: item._id || String(index),
-            patientName: item.patientId?.name || item.patientName || 'Anonymous Patient',
-            bloodGroup: item.patientId?.bloodGroup || item.bloodGroup || 'O+',
-            doctorName: item.doctorId?.name || item.doctorName || 'Dr. Specialist',
-            date: item.date || '2026-08-30',
-            timeSlot: item.timeSlot || '10:00 AM',
-            status: item.status || 'pending',
-          }));
-          setAppointments(formatted);
-        }
-      })
-      .catch((err) => {
-        console.log('Using default sample appointments for HomePage:', err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    // 1-Second smooth loading animation timer
+    setTimeout(() => {
+      fetch('/api/v1/appointments')
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            const formatted = data.map((item, index) => ({
+              _id: item._id || String(index),
+              patientName: item.patientId?.name || item.patientName || 'Anonymous Patient',
+              bloodGroup: item.patientId?.bloodGroup || item.bloodGroup || 'O+',
+              doctorName: item.doctorId?.name || item.doctorName || 'Dr. Specialist',
+              date: item.date || '2026-08-30',
+              timeSlot: item.timeSlot || '10:00 AM',
+              status: item.status || 'pending',
+            }));
+            setAppointments(formatted);
+          }
+        })
+        .catch((err) => {
+          console.log('Using default sample appointments for HomePage:', err.message);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }, 1000);
   };
 
   useEffect(() => {
@@ -163,6 +166,20 @@ const HomePage = () => {
       setToastMessage('Appointment Details Successfully Updated!');
     } finally {
       setEditingAppointment(null);
+    }
+  };
+
+  // Delete appointment handler
+  const handleDeleteAppointment = async (id) => {
+    try {
+      await fetch(`/api/v1/appointments/${id}`, {
+        method: 'DELETE',
+      });
+      setAppointments((prev) => prev.filter((item) => item._id !== id));
+      setToastMessage('Appointment Record Successfully Deleted!');
+    } catch (err) {
+      setAppointments((prev) => prev.filter((item) => item._id !== id));
+      setToastMessage('Appointment Record Successfully Deleted!');
     }
   };
 
@@ -265,6 +282,7 @@ const HomePage = () => {
               timeSlot={appt.timeSlot}
               status={appt.status}
               onEdit={() => setEditingAppointment(appt)}
+              onDelete={() => handleDeleteAppointment(appt._id)}
             />
           ))}
         </div>

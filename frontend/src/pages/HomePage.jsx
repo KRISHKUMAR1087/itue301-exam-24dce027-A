@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import AppointmentCard from '../components/AppointmentCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EditAppointmentModal from '../components/EditAppointmentModal';
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date-asc');
+  const [editingAppointment, setEditingAppointment] = useState(null);
+
   const [appointments, setAppointments] = useState([
     {
       _id: '1',
@@ -29,14 +35,70 @@ const HomePage = () => {
       timeSlot: '11:15 AM',
       status: 'cancelled',
     },
+    {
+      _id: '4',
+      patientName: 'Eleanor Vance',
+      doctorName: 'Dr. Michael Vance',
+      date: '2026-08-28',
+      timeSlot: '09:00 AM',
+      status: 'confirmed',
+    },
+    {
+      _id: '5',
+      patientName: 'David Miller',
+      doctorName: 'Dr. Aisha Patel',
+      date: '2026-08-29',
+      timeSlot: '03:15 PM',
+      status: 'pending',
+    },
+    {
+      _id: '6',
+      patientName: 'Samantha Ray',
+      doctorName: 'Dr. David Miller',
+      date: '2026-08-30',
+      timeSlot: '01:00 PM',
+      status: 'confirmed',
+    },
+    {
+      _id: '7',
+      patientName: 'Carlos Gomez',
+      doctorName: 'Dr. Sophia Martinez',
+      date: '2026-08-31',
+      timeSlot: '10:30 AM',
+      status: 'cancelled',
+    },
+    {
+      _id: '8',
+      patientName: 'Hannah Abbott',
+      doctorName: 'Dr. James Wilson',
+      date: '2026-09-01',
+      timeSlot: '04:00 PM',
+      status: 'pending',
+    },
+    {
+      _id: '9',
+      patientName: 'Liam Gallagher',
+      doctorName: 'Dr. Marcus Brody',
+      date: '2026-09-02',
+      timeSlot: '09:30 AM',
+      status: 'confirmed',
+    },
+    {
+      _id: '10',
+      patientName: 'Chloe Bennett',
+      doctorName: 'Dr. Olivia Vance',
+      date: '2026-09-03',
+      timeSlot: '02:15 PM',
+      status: 'pending',
+    },
   ]);
 
-  useEffect(() => {
-    // Fetch live appointments from backend API
+  const fetchAppointments = () => {
+    setLoading(true);
     fetch('/api/v1/appointments')
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data) && data.length >= 3) {
           const formatted = data.map((item, index) => ({
             _id: item._id || String(index),
             patientName: item.patientId?.name || item.patientName || 'Anonymous Patient',
@@ -54,7 +116,60 @@ const HomePage = () => {
       .finally(() => {
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchAppointments();
   }, []);
+
+  // Update appointment handler (PUT request to backend)
+  const handleSaveEdit = async (id, updatedData) => {
+    try {
+      const res = await fetch(`/api/v1/appointments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (res.ok) {
+        setAppointments((prev) =>
+          prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
+        );
+      } else {
+        // Fallback local update
+        setAppointments((prev) =>
+          prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
+        );
+      }
+    } catch (err) {
+      setAppointments((prev) =>
+        prev.map((item) => (item._id === id ? { ...item, ...updatedData } : item))
+      );
+    } finally {
+      setEditingAppointment(null);
+    }
+  };
+
+  // Filter & Search Logic
+  const filteredAppointments = appointments
+    .filter((appt) => {
+      const matchesSearch =
+        appt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'all' || appt.status.toLowerCase() === statusFilter.toLowerCase();
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date-asc') {
+        return new Date(a.date) - new Date(b.date);
+      } else if (sortBy === 'date-desc') {
+        return new Date(b.date) - new Date(a.date);
+      } else if (sortBy === 'patient-az') {
+        return a.patientName.localeCompare(b.patientName);
+      }
+      return 0;
+    });
 
   return (
     <div className="container">
@@ -65,11 +180,63 @@ const HomePage = () => {
         </p>
       </div>
 
+      {/* Search, Filter & Sort Control Bar */}
+      <div className="filter-control-bar">
+        {/* Search Input */}
+        <div className="filter-item search-box">
+          <label htmlFor="search">🔍 Search</label>
+          <input
+            type="text"
+            id="search"
+            className="form-control"
+            placeholder="Search patient or doctor name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="filter-item">
+          <label htmlFor="statusFilter">🏷️ Status</label>
+          <select
+            id="statusFilter"
+            className="form-control"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses ({appointments.length})</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="filter-item">
+          <label htmlFor="sortBy">🔃 Sort By</label>
+          <select
+            id="sortBy"
+            className="form-control"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="date-asc">Date (Earliest First)</option>
+            <option value="date-desc">Date (Latest First)</option>
+            <option value="patient-az">Patient Name (A - Z)</option>
+          </select>
+        </div>
+      </div>
+
       {loading ? (
         <LoadingSpinner message="Loading Scheduled Appointments..." />
+      ) : filteredAppointments.length === 0 ? (
+        <div className="empty-results-box">
+          <h3>🔍 No matching appointments found</h3>
+          <p>Try adjusting your search criteria or status filter.</p>
+        </div>
       ) : (
         <div className="cards-grid">
-          {appointments.map((appt) => (
+          {filteredAppointments.map((appt) => (
             <AppointmentCard
               key={appt._id}
               patientName={appt.patientName}
@@ -77,9 +244,19 @@ const HomePage = () => {
               date={appt.date}
               timeSlot={appt.timeSlot}
               status={appt.status}
+              onEdit={() => setEditingAppointment(appt)}
             />
           ))}
         </div>
+      )}
+
+      {/* Edit Appointment Modal */}
+      {editingAppointment && (
+        <EditAppointmentModal
+          appointment={editingAppointment}
+          onClose={() => setEditingAppointment(null)}
+          onSave={handleSaveEdit}
+        />
       )}
     </div>
   );

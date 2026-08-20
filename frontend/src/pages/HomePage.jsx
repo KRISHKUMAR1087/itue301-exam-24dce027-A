@@ -98,7 +98,7 @@ const HomePage = () => {
     fetch('/api/v1/appointments')
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length >= 3) {
+        if (Array.isArray(data) && data.length > 0) {
           const formatted = data.map((item, index) => ({
             _id: item._id || String(index),
             patientName: item.patientId?.name || item.patientName || 'Anonymous Patient',
@@ -117,6 +117,7 @@ const HomePage = () => {
         setLoading(false);
       });
   };
+
 
   useEffect(() => {
     fetchAppointments();

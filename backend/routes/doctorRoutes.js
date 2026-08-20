@@ -4,7 +4,7 @@ const Doctor = require('../models/Doctor');
 const { getIsConnected } = require('../config/db');
 
 // Expanded demo doctor dataset (10 distinct medical specialists)
-const initialDoctors = [
+let initialDoctors = [
   {
     _id: '6a86c4dc6d4ccb0f3d7566a8',
     name: 'Dr. Sarah Jenkins',
@@ -82,7 +82,6 @@ router.get('/', async (req, res, next) => {
   try {
     if (getIsConnected()) {
       let doctors = await Doctor.find();
-      // Auto-seed to ensure full 10 doctors dataset in MongoDB
       if (doctors.length < initialDoctors.length) {
         await Doctor.deleteMany({});
         doctors = await Doctor.insertMany(
@@ -113,6 +112,47 @@ router.post('/', async (req, res, next) => {
     };
     initialDoctors.push(newDoc);
     res.status(201).json(newDoc);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/v1/doctors/:id - Update doctor availability status or details
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { available, specialisation, name, email } = req.body;
+
+    if (getIsConnected()) {
+      const updatedDoctor = await Doctor.findByIdAndUpdate(
+        id,
+        {
+          ...(available !== undefined && { available }),
+          ...(specialisation && { specialisation }),
+          ...(name && { name }),
+          ...(email && { email }),
+        },
+        { new: true, runValidators: true }
+      );
+      if (updatedDoctor) {
+        return res.status(200).json(updatedDoctor);
+      }
+    }
+
+    // In-memory update
+    const index = initialDoctors.findIndex((doc) => doc._id === id);
+    if (index !== -1) {
+      initialDoctors[index] = {
+        ...initialDoctors[index],
+        ...(available !== undefined && { available }),
+        ...(specialisation && { specialisation }),
+        ...(name && { name }),
+        ...(email && { email }),
+      };
+      return res.status(200).json(initialDoctors[index]);
+    }
+
+    res.status(404).json({ success: false, error: 'Doctor not found' });
   } catch (error) {
     next(error);
   }

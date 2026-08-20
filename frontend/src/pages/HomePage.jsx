@@ -108,7 +108,7 @@ const HomePage = () => {
 
   const fetchAppointments = () => {
     setLoading(true);
-    // Exact 0.5-second smooth loading animation timer
+    // 0.5-Second smooth loading animation timer
     setTimeout(() => {
       fetch('/api/v1/appointments')
         .then((res) => res.json())
@@ -183,6 +183,20 @@ const HomePage = () => {
     }
   };
 
+  // Filter change handlers with Toast feedback
+  const handleStatusFilterChange = (e) => {
+    const val = e.target.value;
+    setStatusFilter(val);
+    const label = val === 'all' ? 'All Appointments' : `${val.toUpperCase()} Appointments`;
+    setToastMessage(`🔍 Filtered: Showing ${label}!`);
+  };
+
+  const handleSortChange = (e) => {
+    const val = e.target.value;
+    setSortBy(val);
+    setToastMessage('🔃 Appointments Sorted Successfully!');
+  };
+
   // Filter & Search Logic
   const filteredAppointments = appointments
     .filter((appt) => {
@@ -239,7 +253,7 @@ const HomePage = () => {
             id="statusFilter"
             className="form-control"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={handleStatusFilterChange}
           >
             <option value="all">All Statuses ({appointments.length})</option>
             <option value="confirmed">Confirmed</option>
@@ -254,7 +268,7 @@ const HomePage = () => {
             id="sortBy"
             className="form-control"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={handleSortChange}
           >
             <option value="date-asc">Date (Earliest First)</option>
             <option value="date-desc">Date (Latest First)</option>

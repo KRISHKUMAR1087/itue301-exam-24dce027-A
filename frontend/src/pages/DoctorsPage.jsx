@@ -43,8 +43,26 @@ const DoctorsPage = () => {
     fetchDoctors();
   }, []);
 
+  // Filter & Sort change handlers with Toast feedback
+  const handleSpecialtyFilterChange = (e) => {
+    const val = e.target.value;
+    setSpecialityFilter(val);
+    const label = val === 'all' ? 'All Specialties' : val;
+    setToastMessage(`🔬 Doctors Filtered by ${label}!`);
+  };
 
+  const handleAvailabilityFilterChange = (e) => {
+    const val = e.target.value;
+    setAvailabilityFilter(val);
+    const label = val === 'all' ? 'All Statuses' : val === 'available' ? 'Available Today' : 'Unavailable';
+    setToastMessage(`🟢 Filtered: ${label}!`);
+  };
 
+  const handleSortChange = (e) => {
+    const val = e.target.value;
+    setSortBy(val);
+    setToastMessage('🔃 Doctors Directory Sorted!');
+  };
 
   // Toggle Doctor Availability Status Handler
   const handleToggleAvailability = async (doctor) => {
@@ -144,7 +162,7 @@ const DoctorsPage = () => {
               id="specialtyFilter"
               className="form-control"
               value={specialityFilter}
-              onChange={(e) => setSpecialityFilter(e.target.value)}
+              onChange={handleSpecialtyFilterChange}
             >
               <option value="all">All Specialties ({uniqueSpecialties.length})</option>
               {uniqueSpecialties.map((spec) => (
@@ -162,7 +180,7 @@ const DoctorsPage = () => {
               id="availabilityFilter"
               className="form-control"
               value={availabilityFilter}
-              onChange={(e) => setAvailabilityFilter(e.target.value)}
+              onChange={handleAvailabilityFilterChange}
             >
               <option value="all">All Statuses ({data.length})</option>
               <option value="available">Available Today Only</option>
@@ -177,7 +195,7 @@ const DoctorsPage = () => {
               id="sortByDoc"
               className="form-control"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={handleSortChange}
             >
               <option value="name-az">Doctor Name (A - Z)</option>
               <option value="specialty">Specialization</option>
